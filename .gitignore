@@ -1,6 +1,14 @@
-data/
+# Data - too large for GitHub
+data/raw/
+data/processed/
+
+# Model weights
 models/
-*.pyc
+
+# Python venv
+venv/
 __pycache__/
-.ipynb_checkpoints
-.env
+*.pyc
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
