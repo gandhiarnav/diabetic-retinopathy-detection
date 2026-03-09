@@ -1,0 +1,22 @@
+# Core
+torch
+torchvision
+torchaudio
+
+# Data & ML
+numpy
+pandas
+scikit-learn
+opencv-python
+Pillow
+
+# Visualization
+matplotlib
+seaborn
+
+# Utilities
+tqdm
+
+# Notebook
+jupyter
+ipykernel
