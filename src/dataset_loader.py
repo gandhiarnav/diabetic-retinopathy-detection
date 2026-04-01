@@ -1,36 +1,38 @@
 """
 dataset_loader.py
 ─────────────────
-PyTorch Dataset and DataLoader factory for the APTOS 2019 dataset.
+PyTorch Dataset and DataLoader factory for the combined APTOS + IDRiD dataset.
 
-Handles:
-  - Loading preprocessed images from data/processed/
-  - Train / Validation / Test splitting (70 / 15 / 15)
-  - Data augmentation for training set
-  - Returns ready-to-use DataLoaders for model training
+Key improvements over v1:
+  - Oversampling  : minority classes upsampled to match majority class
+  - 360° rotation : retinal images have no natural orientation
+  - GridDistortion: simulates eye lens curvature variation
+  - RandomGamma   : handles different fundus camera exposures
+  - Loads unified train.csv (APTOS + IDRiD combined)
 
 Usage:
   from src.dataset_loader import get_dataloaders
-
   train_loader, val_loader, test_loader = get_dataloaders()
 """
 
-import json
 import torch
 import numpy as np
 import pandas as pd
 from pathlib import Path
 from PIL import Image
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
+from collections import Counter
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 
 # ── Default paths ─────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROC_DIR = BASE_DIR / 'data' / 'processed'
 
-# ── Normalisation constants (ImageNet — used by pretrained EfficientNet) ──────
+# ── ImageNet normalisation (used by pretrained EfficientNet) ──────────────────
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD  = [0.229, 0.224, 0.225]
 
@@ -39,14 +41,14 @@ IMAGENET_STD  = [0.229, 0.224, 0.225]
 # Dataset
 # ─────────────────────────────────────────────────────────────────────────────
 
-class APTOSDataset(Dataset):
+class RetinalDataset(Dataset):
     """
-    PyTorch Dataset for APTOS 2019 retinal images.
+    PyTorch Dataset for combined APTOS + IDRiD retinal images.
 
     Args:
         df        : DataFrame with columns [id_code, diagnosis]
         img_dir   : Path to folder containing preprocessed .png images
-        transform : torchvision transforms to apply
+        transform : albumentations transform pipeline
     """
 
     def __init__(self, df: pd.DataFrame, img_dir: Path, transform=None):
@@ -60,53 +62,111 @@ class APTOSDataset(Dataset):
     def __getitem__(self, idx: int):
         row   = self.df.iloc[idx]
         path  = self.img_dir / f"{row['id_code']}.png"
-        image = Image.open(str(path)).convert('RGB')
+        image = np.array(Image.open(str(path)).convert('RGB'))
         label = int(row['diagnosis'])
 
         if self.transform:
-            image = self.transform(image)
+            image = self.transform(image=image)['image']
 
         return image, label
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Transforms
+# Oversampling
+# ─────────────────────────────────────────────────────────────────────────────
+
+def oversample_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Oversamples minority classes so every grade has equal representation.
+    Matches the paper's approach: all classes upsampled to majority class count.
+
+    Only applied to training set — val and test are never oversampled.
+
+    Example:
+      Before: No DR=1263, Mild=182, Moderate=549, Severe=96, Prolif=145
+      After : All classes = 1263  →  total = 6315
+    """
+    max_count = df['diagnosis'].value_counts().max()
+    balanced  = []
+
+    for grade in range(5):
+        grade_df = df[df['diagnosis'] == grade]
+        if len(grade_df) == 0:
+            continue
+        # Sample with replacement to reach max_count
+        oversampled = grade_df.sample(
+            n=max_count, replace=True, random_state=42
+        )
+        balanced.append(oversampled)
+
+    balanced_df = pd.concat(balanced).sample(frac=1, random_state=42)  # shuffle
+    balanced_df = balanced_df.reset_index(drop=True)
+    return balanced_df
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Transforms (albumentations)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_transforms(img_size: int = 224) -> dict:
     """
-    Returns a dict of transforms for each split.
+    Returns albumentations transform pipelines for each split.
 
-    Training  : augmentation (flips, rotation, colour jitter, blur)
-    Validation: no augmentation, only resize + normalise
-    Test      : same as validation
+    Training improvements over v1:
+      - 360° rotation (retinas have no orientation)
+      - GridDistortion (simulates eye lens curvature)
+      - RandomGamma (handles different camera exposures)
+      - CoarseDropout (simulates occluded regions)
+
+    Val/Test: only resize + normalise (no augmentation)
     """
-    train_tf = transforms.Compose([
-        transforms.Resize((img_size, img_size)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5),
-        transforms.RandomRotation(degrees=20),
-        transforms.ColorJitter(
+
+    train_tf = A.Compose([
+        A.Resize(img_size, img_size),
+
+        # ── Geometric ─────────────────────────────────────────────────────────
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+        A.Rotate(limit=360, p=0.8),              # full 360° — paper's approach
+        A.GridDistortion(                         # eye lens curvature simulation
+            num_steps=5,
+            distort_limit=0.3,
+            p=0.3
+        ),
+
+        # ── Colour / lighting ─────────────────────────────────────────────────
+        A.RandomGamma(                            # camera exposure variation
+            gamma_limit=(80, 120),
+            p=0.4
+        ),
+        A.ColorJitter(
             brightness=0.2,
             contrast=0.2,
             saturation=0.1,
+            p=0.4
         ),
-        transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.0)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        A.GaussianBlur(blur_limit=(3, 5), p=0.2),
+
+        # ── Regularisation ────────────────────────────────────────────────────
+        A.CoarseDropout(                          # randomly masks small patches
+            max_holes=8,
+            max_height=16,
+            max_width=16,
+            p=0.2
+        ),
+
+        # ── Normalise & tensor ────────────────────────────────────────────────
+        A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ToTensorV2(),
     ])
 
-    eval_tf = transforms.Compose([
-        transforms.Resize((img_size, img_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+    eval_tf = A.Compose([
+        A.Resize(img_size, img_size),
+        A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ToTensorV2(),
     ])
 
-    return {
-        'train': train_tf,
-        'val'  : eval_tf,
-        'test' : eval_tf,
-    }
+    return {'train': train_tf, 'val': eval_tf, 'test': eval_tf}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -114,43 +174,35 @@ def get_transforms(img_size: int = 224) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_dataloaders(
-    proc_dir   : Path = PROC_DIR,
-    img_size   : int  = 224,
-    batch_size : int  = 32,
-    num_workers: int  = 4,
+    proc_dir   : Path  = PROC_DIR,
+    img_size   : int   = 224,
+    batch_size : int   = 32,
+    num_workers: int   = 0,
     val_size   : float = 0.15,
     test_size  : float = 0.15,
-    random_seed: int  = 42,
+    random_seed: int   = 42,
+    oversample : bool  = True,
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
-    Splits the dataset and returns (train_loader, val_loader, test_loader).
+    Loads unified APTOS + IDRiD CSV, splits, oversamples train set,
+    and returns (train_loader, val_loader, test_loader).
 
-    Split: 70% train / 15% val / 15% test  (stratified by diagnosis grade)
-
-    Args:
-        proc_dir    : Path to data/processed/
-        img_size    : Image size expected by the model (must match preprocessing)
-        batch_size  : Number of images per batch
-        num_workers : Parallel workers for data loading (set 0 on Windows if issues)
-        val_size    : Fraction of data for validation
-        test_size   : Fraction of data for test
-        random_seed : Reproducibility seed
-
-    Returns:
-        (train_loader, val_loader, test_loader)
+    Split is stratified by diagnosis grade.
+    Oversampling is applied ONLY to train set.
     """
 
     csv_path = proc_dir / 'train.csv'
     img_dir  = proc_dir / 'train_images'
 
     if not csv_path.exists():
-        raise FileNotFoundError(f'train.csv not found at {csv_path}')
-    if not img_dir.exists():
-        raise FileNotFoundError(f'Processed images not found at {img_dir}')
+        raise FileNotFoundError(
+            f'Unified train.csv not found at {csv_path}\n'
+            f'Run data_preprocessing.py first.'
+        )
 
     df = pd.read_csv(csv_path)
 
-    # ── Stratified split: train / temp (val + test) ───────────────────────────
+    # ── Stratified split ──────────────────────────────────────────────────────
     temp_frac = val_size + test_size
     df_train, df_temp = train_test_split(
         df,
@@ -158,8 +210,6 @@ def get_dataloaders(
         stratify=df['diagnosis'],
         random_state=random_seed,
     )
-
-    # Split temp into val and test (equal halves if val_size == test_size)
     val_frac_of_temp = val_size / temp_frac
     df_val, df_test = train_test_split(
         df_temp,
@@ -168,22 +218,30 @@ def get_dataloaders(
         random_state=random_seed,
     )
 
-    print(f'Split summary:')
-    print(f'  Train : {len(df_train)} images ({len(df_train)/len(df)*100:.1f}%)')
-    print(f'  Val   : {len(df_val)}   images ({len(df_val)/len(df)*100:.1f}%)')
-    print(f'  Test  : {len(df_test)}  images ({len(df_test)/len(df)*100:.1f}%)')
-    print()
+    print(f'Split (before oversampling):')
+    print(f'  Train : {len(df_train)}')
+    print(f'  Val   : {len(df_val)}')
+    print(f'  Test  : {len(df_test)}')
+
+    # ── Oversample train set ──────────────────────────────────────────────────
+    if oversample:
+        df_train_balanced = oversample_dataframe(df_train)
+        print(f'\nAfter oversampling:')
+        print(f'  Train : {len(df_train_balanced)}')
+        for g in range(5):
+            c = len(df_train_balanced[df_train_balanced['diagnosis'] == g])
+            print(f'    Grade {g}: {c}')
+    else:
+        df_train_balanced = df_train
 
     # ── Transforms ────────────────────────────────────────────────────────────
     tfs = get_transforms(img_size)
 
     # ── Datasets ──────────────────────────────────────────────────────────────
-    train_ds = APTOSDataset(df_train, img_dir, transform=tfs['train'])
-    val_ds   = APTOSDataset(df_val,   img_dir, transform=tfs['val'])
-    test_ds  = APTOSDataset(df_test,  img_dir, transform=tfs['test'])
+    train_ds = RetinalDataset(df_train_balanced, img_dir, transform=tfs['train'])
+    val_ds   = RetinalDataset(df_val,            img_dir, transform=tfs['val'])
+    test_ds  = RetinalDataset(df_test,           img_dir, transform=tfs['test'])
 
-    # ── DataLoaders ───────────────────────────────────────────────────────────
-    # pin_memory speeds up CPU→GPU transfers
     pin = torch.cuda.is_available()
 
     train_loader = DataLoader(
@@ -208,11 +266,15 @@ def get_dataloaders(
         pin_memory=pin,
     )
 
+    print(f'\nTrain batches : {len(train_loader)}')
+    print(f'Val   batches : {len(val_loader)}')
+    print(f'Test  batches : {len(test_loader)}')
+
     return train_loader, val_loader, test_loader
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Quick test — run directly to verify everything works
+# Quick test
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
@@ -220,15 +282,10 @@ if __name__ == '__main__':
 
     train_loader, val_loader, test_loader = get_dataloaders(
         batch_size=8,
-        num_workers=0,   # safer for a quick test on Windows
+        num_workers=0,
     )
 
-    # Grab one batch and print shapes
     images, labels = next(iter(train_loader))
-    print(f'Batch image shape : {images.shape}')   # (8, 3, 224, 224)
+    print(f'\nBatch image shape : {images.shape}')
     print(f'Batch labels      : {labels}')
-    print(f'Label dtype       : {labels.dtype}')
-    print(f'\nTrain batches : {len(train_loader)}')
-    print(f'Val   batches : {len(val_loader)}')
-    print(f'Test  batches : {len(test_loader)}')
     print('\ndataset_loader.py ✅')
