@@ -5,7 +5,11 @@ This project builds a deep learning model to detect diabetic retinopathy from re
 
 ## Dataset
 Dataset from Kaggle:
-APTOS 2019 Blindness Detection
+APTOS 2019 Blindness Detection 
+https://www.kaggle.com/competitions/aptos2019-blindness-detection/data
+
+IDRiD: Excellent for "Early Detection" as it provides pixel-level annotations for lesions.
+https://www.kaggle.com/datasets/mohamedabdalkader/indian-diabetic-retinopathy-image-dataset-idrid2
 
 ## Project Structure
 diabetic-retinopathy-detection/
@@ -41,9 +45,10 @@ CNN / ResNet / EfficientNet
 ![Training Curves](results/training_curves.png)
 
 ## Results
-Accuracy:
-F1 Score:
-Confusion Matrix
+Accuracy	68.36%
+Weighted Precision	73.88%
+Weighted Recall	68.36%
+![Confusion Matrix](results/confusion_matrix.png)
 
 ## How to Run
 
