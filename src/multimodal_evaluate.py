@@ -51,7 +51,7 @@ def evaluate_model():
     model = MultimodalRetinopathyModel().to(device)
     
     # Load the checkpoint
-    checkpoint = torch.load(MODEL_PATH, map_location=device)
+    checkpoint = torch.load(MODEL_PATH, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval() # Set to evaluation mode (turns off dropout, batchnorm updates)
 
