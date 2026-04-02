@@ -23,12 +23,12 @@ def train_model():
     EPOCHS = 15
     LEARNING_RATE = 2e-5 # Very low learning rate because we are fine-tuning pre-trained models
     
-    # File paths - Update these to match your Colab/Kaggle environment
-    TRAIN_CSV = 'data/raw/idrid/train_labels.csv'
-    TRAIN_IMG_DIR = 'data/raw/idrid/train_images/'
-    VAL_CSV = 'data/raw/idrid/test_labels.csv'
-    VAL_IMG_DIR = 'data/raw/idrid/test_images/'
-    MODEL_SAVE_PATH = 'models/best_multimodal_model.pth'
+    # File paths - Updated for Kaggle (using the preprocessed data)
+    TRAIN_CSV = '/kaggle/working/data/processed/idrid/train_labels.csv'
+    TRAIN_IMG_DIR = '/kaggle/working/data/processed/idrid/train_images/'
+    VAL_CSV = '/kaggle/working/data/processed/idrid/test_labels.csv'
+    VAL_IMG_DIR = '/kaggle/working/data/processed/idrid/test_images/'
+    MODEL_SAVE_PATH = '/kaggle/working/diabetic-retinopathy-detection/models/best_multimodal_model.pth'
 
     # Ensure save directory exists
     os.makedirs('models', exist_ok=True)
