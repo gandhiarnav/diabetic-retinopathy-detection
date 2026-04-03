@@ -9,7 +9,7 @@ from pathlib import Path
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 # Kaggle input path — update if running locally
-BASE_DIR = '/kaggle/input/datasets/arnavgandhi10000/aptos-idrid-combined-processed-v1'
+BASE_DIR = Path('/kaggle/input/datasets/arnavgandhi10000/aptos-idrid-combined-processed-v1')
 IMG_DIR        = BASE_DIR / 'train_images'
 CSV_PATH       = BASE_DIR / 'train.csv'
 
