@@ -22,10 +22,10 @@ def evaluate_model():
     BATCH_SIZE = 16
     
     # Kaggle Paths
-    VAL_CSV = '/kaggle/working/data/processed/idrid/test_labels.csv'
-    VAL_IMG_DIR = '/kaggle/working/data/processed/idrid/test_images/'
-    MODEL_PATH = '/kaggle/working/diabetic-retinopathy-detection/models/best_multimodal_model.pth'
-    RESULTS_DIR = '/kaggle/working/diabetic-retinopathy-detection/results/results_multimodal/'
+    VAL_CSV = 'data/processed/idrid/test_labels.csv'
+    VAL_IMG_DIR = 'data/processed/idrid/test_images/'
+    MODEL_PATH = 'models/best_multimodal_model.pth'
+    RESULTS_DIR = 'results/results_multimodal/'
 
     # Ensure results directory exists
     os.makedirs(RESULTS_DIR, exist_ok=True)

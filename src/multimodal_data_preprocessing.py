@@ -50,22 +50,23 @@ if __name__ == "__main__":
     # Define Kaggle input (Read-Only) and working (Writeable) directories
     # If running locally, change these to your local paths (e.g., 'data/raw/idrid/...')
     
-    # KAGGLE PATHS:
-    RAW_DIR = '/kaggle/input/datasets/mohamedabdalkader/indian-diabetic-retinopathy-image-dataset-idrid2/IDRiD'
-    PROC_DIR = '/kaggle/working/data/processed/idrid/'
+
+    # LOCAL PATHS:
+    RAW_DIR = 'data/raw/idrid/'
+    PROC_DIR = 'data/processed/idrid/'
     
     # Train Data
     process_dataset(
-        raw_csv=os.path.join(RAW_DIR, 'train/annotations.csv'),
-        raw_img_dir=os.path.join(RAW_DIR, 'train/images/'),
+        raw_csv=os.path.join(RAW_DIR, 'train_labels.csv'),
+        raw_img_dir=os.path.join(RAW_DIR, 'train_images/'),
         proc_csv=os.path.join(PROC_DIR, 'train_labels.csv'),
         proc_img_dir=os.path.join(PROC_DIR, 'train_images/')
     )
     
     # Test Data
     process_dataset(
-        raw_csv=os.path.join(RAW_DIR, 'test/annotations.csv'),
-        raw_img_dir=os.path.join(RAW_DIR, 'test/images/'),
+        raw_csv=os.path.join(RAW_DIR, 'test_labels.csv'),
+        raw_img_dir=os.path.join(RAW_DIR, 'test_images/'),
         proc_csv=os.path.join(PROC_DIR, 'test_labels.csv'),
         proc_img_dir=os.path.join(PROC_DIR, 'test_images/')
     )

@@ -1,19 +1,19 @@
 Diabetic Retinopathy Multimodal Model Evaluation
 =================================================
 
-Overall Accuracy: 100.00%
-Quadratic Weighted Kappa: 1.0000
+Overall Accuracy: 95.02%
+Quadratic Weighted Kappa: 0.9689
 
 Detailed Classification Report:
 ------------------------------
               precision    recall  f1-score   support
 
-     Grade 0       1.00      1.00      1.00       272
-     Grade 1       1.00      1.00      1.00        40
-     Grade 2       1.00      1.00      1.00       256
-     Grade 3       1.00      1.00      1.00       152
-     Grade 4       1.00      1.00      1.00       104
+     Grade 0       0.98      1.00      0.99       266
+     Grade 1       0.97      0.72      0.83        54
+     Grade 2       0.95      0.95      0.95       257
+     Grade 3       0.94      0.95      0.95       150
+     Grade 4       0.88      0.95      0.92        97
 
-    accuracy                           1.00       824
-   macro avg       1.00      1.00      1.00       824
-weighted avg       1.00      1.00      1.00       824
+    accuracy                           0.95       824
+   macro avg       0.95      0.91      0.93       824
+weighted avg       0.95      0.95      0.95       824
