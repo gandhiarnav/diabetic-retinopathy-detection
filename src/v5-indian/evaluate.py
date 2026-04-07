@@ -232,35 +232,62 @@ def plot_confusion_matrices(results: dict):
 # Chart 3 — Per-class F1
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Chart 3 — Per-class F1
+# ─────────────────────────────────────────────────────────────────────────────
+
 def plot_per_class_f1(results: dict):
     modes = list(results.keys())
-    x     = np.arange(len(GRADE_LABELS))
-    width = 0.35 / max(len(modes) - 1, 1) * 2 if len(modes) > 1 else 0.5
+    n_grades = len(GRADE_LABELS)
+    n_models = len(modes)
 
-    fig, ax = plt.subplots(figsize=(11, 5))
+    # Better figure sizing and layout
+    if n_models == 1:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        width = 0.6
+        x = np.arange(n_grades)
+        offsets = [0]
+    else:
+        fig, ax = plt.subplots(figsize=(12, 6))
+        width = 0.35
+        x = np.arange(n_grades)
+        offsets = np.linspace(-width/2 * (n_models-1), width/2 * (n_models-1), n_models)
+
     for i, mode in enumerate(modes):
-        f1s    = f1_score(results[mode]['labels'], results[mode]['preds'],
-                          average=None, zero_division=0)
-        offset = (i - (len(modes) - 1) / 2) * (width + 0.04)
-        bars   = ax.bar(x + offset, f1s, width,
-                        label=MODEL_NAMES[mode],
-                        color=MODEL_COLORS[mode],
-                        edgecolor='white', linewidth=0.7, alpha=0.9)
+        f1s = f1_score(results[mode]['labels'], results[mode]['preds'],
+                       average=None, zero_division=0)
+
+        bars = ax.bar(x + offsets[i], f1s, width,
+                      label=MODEL_NAMES[mode],
+                      color=MODEL_COLORS[mode],
+                      edgecolor='white', linewidth=1.5, alpha=0.9)
+
+        # Better text positioning and sizing
         for bar, val in zip(bars, f1s):
+            height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.01,
-                    f'{val:.2f}', ha='center', va='bottom',
-                    fontsize=9, fontweight='bold')
+                    height + 0.02,
+                    f'{val:.3f}', ha='center', va='bottom',
+                    fontsize=10, fontweight='bold',
+                    bbox=dict(boxstyle='round,pad=0.2',
+                             facecolor='white', alpha=0.8,
+                             edgecolor='none'))
 
     ax.set_xticks(x)
-    ax.set_xticklabels(GRADE_LABELS, fontsize=11)
-    ax.set_ylabel('F1 Score', fontsize=12)
-    ax.set_title('Per-Class F1 Score by Model', fontsize=13, fontweight='bold')
-    ax.set_ylim(0, 1.12)
-    ax.legend(fontsize=11)
-    ax.axhline(y=0.9, color='gray', linestyle='--', linewidth=1, alpha=0.5,
-               label='0.9 target')
-    ax.grid(axis='y', alpha=0.3)
+    ax.set_xticklabels(GRADE_LABELS, fontsize=11, rotation=15, ha='right')
+    ax.set_ylabel('F1 Score', fontsize=12, fontweight='bold')
+    ax.set_title('Per-Class F1 Score by Model', fontsize=14, fontweight='bold', pad=20)
+    ax.set_ylim(0, 1.15)
+    ax.legend(fontsize=11, loc='upper right', framealpha=0.9)
+    ax.axhline(y=0.9, color='red', linestyle='--', linewidth=1.5, alpha=0.7)
+    ax.text(n_grades - 0.5, 0.92, 'Target: 0.90', color='red',
+            fontsize=10, fontweight='bold', ha='right')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+
+    # Add subtle background stripes for better readability
+    for i in range(n_grades):
+        if i % 2 == 0:
+            ax.axvspan(i - 0.5, i + 0.5, alpha=0.05, color='gray')
 
     plt.tight_layout()
     plt.savefig(RESULTS_DIR / '03_per_class_f1.png', dpi=150, bbox_inches='tight')
