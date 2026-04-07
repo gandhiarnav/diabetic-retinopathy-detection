@@ -9,9 +9,10 @@ from pathlib import Path
 
 # ── Kaggle dataset paths ──────────────────────────────────────────────────────
 # Your IDRiD dataset on Kaggle — update dataset name if different
-DATA_DIR  = Path('/kaggle/input/indian-diabetic-retinopathy-image-dataset-idrid/B. Disease Grading/B. Disease Grading')
-IMAGE_DIR = DATA_DIR / '1. Original Images' / 'a. Training Set'
-CSV_PATH  = DATA_DIR / '2. Groundtruths' / 'a. IDRiD_Disease Grading_Training Labels.csv'
+DATA_DIR      = Path('/kaggle/input/datasets/mohamedabdalkader/indian-diabetic-retinopathy-image-dataset-idrid2')
+IMAGE_DIR     = DATA_DIR / 'IDRiD' / 'train' / 'images'
+TRAIN_CSV_PATH = DATA_DIR / 'IDRiD' / 'train' / 'annotations.csv'
+TEST_CSV_PATH  = DATA_DIR / 'IDRiD' / 'test' / 'annotations.csv'
 
 # ── Output paths ──────────────────────────────────────────────────────────────
 OUTPUT_DIR  = Path('/kaggle/working')
