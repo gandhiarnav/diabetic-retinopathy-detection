@@ -13,6 +13,7 @@ DATA_DIR      = Path('/kaggle/input/datasets/mohamedabdalkader/indian-diabetic-r
 IMAGE_DIR     = DATA_DIR / 'IDRiD' / 'train' / 'images'
 TRAIN_CSV_PATH = DATA_DIR / 'IDRiD' / 'train' / 'annotations.csv'
 TEST_CSV_PATH  = DATA_DIR / 'IDRiD' / 'test' / 'annotations.csv'
+CSV_PATH      = TRAIN_CSV_PATH
 
 # ── Output paths ──────────────────────────────────────────────────────────────
 OUTPUT_DIR  = Path('/kaggle/working')
