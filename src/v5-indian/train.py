@@ -192,9 +192,16 @@ def train_model(
             best_kappa  = kappa
             best_preds  = preds
             best_labels = labels
+            no_improve  = 0                        # ← add this
             ckpt_path   = MODEL_DIR / f'dr_model_{mode}.pth'
             torch.save(model.state_dict(), ckpt_path)
             print(f'  ✅ Saved → {ckpt_path.name}')
+        else:
+            no_improve += 1                        # ← add this
+            print(f'  No improvement ({no_improve}/3)')
+            if no_improve >= 3:                    # ← add this
+                print(f'  ⏹  Early stopping')
+                break
 
     return best_kappa, best_preds, best_labels
 
