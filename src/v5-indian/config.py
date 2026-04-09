@@ -33,7 +33,7 @@ VAL_SPLIT         = 0.2    # 80/20 train/val split
 
 # ── Training ──────────────────────────────────────────────────────────────────
 BATCH_SIZE  = 32
-EPOCHS      = 5            # notebook reaches 0.95 kappa in just 5 epochs
+EPOCHS      = 10            # notebook reaches 0.95 kappa in just 5 epochs
 LR          = 1e-4         # Adam LR for ConvNext
 
 # Differential LRs for MultimodalModel (EfficientNet backbone)
