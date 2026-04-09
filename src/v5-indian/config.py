@@ -32,7 +32,7 @@ RANDOM_SEED       = 42
 VAL_SPLIT         = 0.2    # 80/20 train/val split
 
 # ── Training ──────────────────────────────────────────────────────────────────
-BATCH_SIZE  = 32
+BATCH_SIZE = 64   # was 32 — larger batches = GPU works longer per load
 EPOCHS      = 10            # notebook reaches 0.95 kappa in just 5 epochs
 LR          = 1e-4         # Adam LR for ConvNext
 
