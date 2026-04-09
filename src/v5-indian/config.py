@@ -33,7 +33,7 @@ VAL_SPLIT         = 0.2    # 80/20 train/val split
 
 # ── Training ──────────────────────────────────────────────────────────────────
 BATCH_SIZE = 64   # was 32 — larger batches = GPU works longer per load
-EPOCHS      = 10            # notebook reaches 0.95 kappa in just 5 epochs
+EPOCHS      = 20            # still increasing at 10 so trying 20
 LR          = 1e-4         # Adam LR for ConvNext
 
 # Differential LRs for MultimodalModel (EfficientNet backbone)
