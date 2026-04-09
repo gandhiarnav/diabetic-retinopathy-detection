@@ -67,9 +67,15 @@ MODEL_NAMES   = {'image_only': 'EfficientNetB0', 'convnext': 'ConvNeXt-Tiny'}
 def load_model(mode: str):
     ModelClass = ConvNextModel if mode == 'convnext' else MultimodalModel
     model      = ModelClass().to(device)
-    ckpt_path  = MODEL_DIR / f'dr_model_{mode}.pth'
+    
+    # Update these paths to match your Kaggle uploaded models
+    if mode == 'image_only':
+        ckpt_path = Path('/kaggle/input/models/arnavgandhi10000/dr-detection-5/pytorch/default/1/v5.2-dr_model_image_only.pth')
+    else:  # convnext
+        ckpt_path = Path('/kaggle/input/models/arnavgandhi10000/dr-detection-5/pytorch/default/1/v5.2-dr_model_convnext.pth')
+    
     if not ckpt_path.exists():
-        raise FileNotFoundError(f'No checkpoint at {ckpt_path} — run train.py first')
+        raise FileNotFoundError(f'No checkpoint at {ckpt_path}')
     model.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
     model.eval()
     return model
