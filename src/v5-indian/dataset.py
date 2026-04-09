@@ -214,13 +214,20 @@ def prepare_data(
     val_dataset   = DRDataset(val_df,   IMAGE_DIR, tokenizer, text_model)
 
     # ── DataLoaders ───────────────────────────────────────────────────────────
+    # Change this in both DataLoaders
     train_loader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE,
-        shuffle=True,  num_workers=2, pin_memory=True,
+        shuffle=True, num_workers=4,   # ← was 2, increase to 4
+        pin_memory=True,
+        persistent_workers=True,       # ← ADD THIS — keeps workers alive between epochs
+        prefetch_factor=2,             # ← ADD THIS — prefetches next batch while GPU trains
     )
     val_loader = DataLoader(
         val_dataset, batch_size=BATCH_SIZE,
-        shuffle=False, num_workers=2, pin_memory=True,
+        shuffle=False, num_workers=4,  # ← same
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2,
     )
 
     print(f'\nTrain batches : {len(train_loader)}')
