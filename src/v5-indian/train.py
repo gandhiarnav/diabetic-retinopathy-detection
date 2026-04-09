@@ -151,6 +151,7 @@ def train_model(
     print(f'{"="*50}')
 
     model = ModelClass().to(device)
+    model = torch.compile(model)   # ← fuses operations, significant speedup
 
     # ── Optimizer ─────────────────────────────────────────────────────────────
     if mode == 'image_only':
