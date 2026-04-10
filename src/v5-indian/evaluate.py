@@ -70,7 +70,15 @@ def load_model(mode: str):
     ckpt_path  = MODEL_DIR / f'dr_model_{mode}.pth'
     if not ckpt_path.exists():
         raise FileNotFoundError(f'No checkpoint at {ckpt_path} — run train.py first')
-    model.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
+    
+    # Load checkpoint and handle torch.compile wrapper
+    state_dict = torch.load(ckpt_path, map_location=device, weights_only=False)
+    
+    # Remove torch.compile() wrapper prefix if present
+    if any(k.startswith('_orig_mod.') for k in state_dict.keys()):
+        state_dict = {k.replace('_orig_mod.', ''): v for k, v in state_dict.items()}
+    
+    model.load_state_dict(state_dict)
     model.eval()
     return model
 
