@@ -17,7 +17,7 @@ CSV_PATH      = TRAIN_CSV_PATH
 
 # ── Output paths ──────────────────────────────────────────────────────────────
 OUTPUT_DIR  = Path('/kaggle/working')
-MODEL_DIR   = Path('/kaggle/input/models/arnavgandhi10000/dr-model-image-only/pytorch/default/1')  
+MODEL_DIR   = Path('/kaggle/input/models/arnavgandhi10000/model/pytorch/default/1')  
 RESULTS_DIR = OUTPUT_DIR / 'results'
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
