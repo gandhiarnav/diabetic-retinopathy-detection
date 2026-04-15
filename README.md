@@ -43,7 +43,7 @@ At inference time, the predicted DR grade and edema risk are passed to a rule-ba
 
 ## Results
 
-![Confusion Matrix](results/v5-indian-results/02_confusion_matrix_pct)
+![Confusion Matrix](results/v5-indian-results/02_confusion_matrix_pct.png)
 
 ## How to Run
 
