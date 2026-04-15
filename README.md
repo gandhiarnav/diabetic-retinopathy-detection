@@ -24,7 +24,11 @@ The dataset is split into 80% training and 20% validation using stratified sampl
 
 3.4 Model Architectures
 Two independent model architectures were trained and compared.
-Model A — EfficientNetB0 with multimodal fusion. The EfficientNetB0 backbone (pretrained on ImageNet) extracts a 1,280-dimensional feature vector from the input image. A parallel text branch processes optional CLIP-encoded caption embeddings (512-dimensional) through a linear layer, ReLU activation, and batch normalisation to produce a 128-dimensional text representation. The image and text features are concatenated (1,408 dimensions total) and passed through a fusion layer consisting of a linear projection to 256 dimensions, ReLU activation, and 30% dropout. When captions are unavailable, the text branch receives a zero vector, making the model operate in image-only mode.
+
+Model A — EfficientNetB0 with Optional Multimodal Fusion.
+The EfficientNetB0 backbone (pretrained on ImageNet) extracts a 1,280-dimensional feature vector from the input image. The architecture includes an optional text branch designed to process CLIP-encoded caption embeddings (512-dimensional), which are projected to a 128-dimensional representation and fused with image features.
+In this study, both models were trained and evaluated in image-only mode to ensure a fair comparison between architectures. Accordingly, the text branch receives zero vectors, and the model operates as a unimodal image classifier.
+
 Model B — ConvNeXt-Tiny. The ConvNeXt-Tiny backbone (pretrained on ImageNet) produces a feature map that is flattened to a 768-dimensional vector. No text branch is used. This architecture is more modern than EfficientNet, employing large convolutional kernels, LayerNorm, and GELU activations, which make it well-suited to capturing the fine texture differences that distinguish DR severity grades.
 
 3.5 Dual-Head Output
