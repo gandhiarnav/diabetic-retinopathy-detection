@@ -165,7 +165,7 @@ Download: [IEEE DataPort](https://ieee-dataport.org/open-access/indian-diabetic-
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/diabetic-retinopathy-detection.git
+git clone https://github.com/gandhiarnav/diabetic-retinopathy-detection.git
 cd diabetic-retinopathy-detection
 
 python -m venv venv
