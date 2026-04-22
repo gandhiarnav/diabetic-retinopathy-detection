@@ -315,8 +315,7 @@ The triage matrix combines DR grade and macular edema risk to produce an urgency
 | Version | Key Change | QWK |
 |---------|-----------|-----|
 | V1 (EfficientNetB4, APTOS + IDRiD merge) | Combined APTOS + IDRiD dataset | 0.7818 |
-| V2 (Multimodal Fusion, EfficientNet-B4 and ClinicalBERT) | Multimodal (image encoder + text encoder
-) | 100 |
+| V2 (Multimodal Fusion, EfficientNet-B4 and ClinicalBERT) | Multimodal (image encoder + text encoder) | 100 |
 | **V3 — Indian (final)** | **EfficientNetB0 + ConvNeXt + Lesion overlays + multi-task loss** | **0.9273** |
 
 ---
