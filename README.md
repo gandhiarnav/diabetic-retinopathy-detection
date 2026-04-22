@@ -25,8 +25,10 @@ Diabetic Retinopathy (DR) is a leading cause of preventable blindness worldwide.
 
 | Model | Accuracy | QWK | Weighted F1 |
 |-------|----------|-----|-------------|
-| EfficientNetB0 | — | **0.9273** | — |
-| ConvNeXt-Tiny | — | **~0.95** | — |
+| EfficientNetB0 | 0.874 | **0.9273** | 0.874 |
+| ConvNeXt-Tiny | 0.899 | **~0.95** | 0.898 |
+
+![Results](results/v5-indian-results/05_kappa_accuracy_comparison.png)
 
 > Quadratic Weighted Kappa (QWK) is the standard metric for DR grading. A score above 0.81 indicates almost perfect agreement with ground truth.
 
@@ -40,6 +42,7 @@ Diabetic Retinopathy (DR) is a leading cause of preventable blindness worldwide.
 | 3 | Severe NPDR | high |
 | 4 | Proliferative DR | high |
 
+![Confusion Matrix - Row Normalised(%)](results/v5-indian-results/02_confusion_matrix_pct.png)
 ---
 
 ## Architecture
@@ -311,11 +314,10 @@ The triage matrix combines DR grade and macular edema risk to produce an urgency
 
 | Version | Key Change | QWK |
 |---------|-----------|-----|
-| V1 (EfficientNetB4, APTOS) | Baseline PyTorch model | 0.7818 |
-| V2 (+ IDRiD merge) | Combined APTOS + IDRiD dataset | — |
-| V3 (+ CLAHE preprocessing) | Medical image enhancement | — |
-| V4 (EfficientNetB0 + ConvNeXt) | Dual model comparison, dual-head | — |
-| **V5 — Indian (final)** | **Lesion overlays + multi-task loss** | **0.9273** |
+| V1 (EfficientNetB4, APTOS + IDRiD merge) | Combined APTOS + IDRiD dataset | 0.7818 |
+| V2 (Multimodal Fusion, EfficientNet-B4 and ClinicalBERT) | Multimodal (image encoder + text encoder
+) | 100 |
+| **V3 — Indian (final)** | **EfficientNetB0 + ConvNeXt + Lesion overlays + multi-task loss** | **0.9273** |
 
 ---
 
